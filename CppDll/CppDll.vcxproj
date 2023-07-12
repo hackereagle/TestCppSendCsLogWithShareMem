@@ -188,6 +188,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DateTime.hpp" />
+    <ClInclude Include="SharedMemoryLogger.hpp" />
     <ClInclude Include="Source.h" />
   </ItemGroup>
   <ItemGroup>

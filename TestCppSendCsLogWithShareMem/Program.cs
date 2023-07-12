@@ -19,6 +19,7 @@ internal class Program
                 for (; ; )
                 {
                     using (NamedPipeServerStream pipeStream = new NamedPipeServerStream("BvrPipe"))
+                    //using (NamedPipeServerStream pipeStream = new NamedPipeServerStream("\\\\.\\pipe\\BvrPipe"))
                     {
                         Console.WriteLine("[Server] Pipe created {0}", pipeStream.GetHashCode());
                         // Wait for a connection

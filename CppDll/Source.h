@@ -12,6 +12,6 @@
 #include <stdio.h>
 #include <windows.h>
 
-void WriteErrorToFile(const char* message);
-void CreatePipeStream(const char* szPipeUpdate);
+//void WriteErrorToFile(const char* message);
+//void CreatePipeStream(const char* szPipeUpdate);
 DLL_API int AddTwoNum(int a, int b);

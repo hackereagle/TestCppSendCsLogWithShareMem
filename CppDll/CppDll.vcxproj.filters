@@ -18,6 +18,12 @@
     <ClInclude Include="Source.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SharedMemoryLogger.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DateTime.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
