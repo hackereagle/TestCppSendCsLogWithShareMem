@@ -33,7 +33,6 @@ public:
         std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
         std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
         struct tm currentLocalTime;
-        //currentLocalTime = *localtime(&currentTime);
 #if _WIN32
         localtime_s(&currentLocalTime, &currentTime);
 #else
