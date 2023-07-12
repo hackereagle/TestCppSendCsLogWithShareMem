@@ -19,7 +19,10 @@ class SharedMemoryLogger
 public:
 	~SharedMemoryLogger()
 	{
+		CloseHandle(_hTrace);
 		CloseHandle(_hInfo);
+		CloseHandle(_hError);
+		CloseHandle(_hFatal);
 	}
 
 	static SharedMemoryLogger& GetInstance()
@@ -32,15 +35,17 @@ public:
 		return *_instance;
 	}
 
-	void WriteLog(const char* szPipeUpdate)
+	void WriteLog(LogLevel level, const char* szPipeUpdate)
 	{
 		DWORD dwWrite;
 
-		HANDLE _hFile = _hInfo;
+		HANDLE _hFile = GetLogLevelFileHandle(level);
 
 		if (_hFile == INVALID_HANDLE_VALUE) {
 			DWORD dw = GetLastError();
-			WriteErrorToFile("CreateFile failed for Named Pipe client\n:");
+			std::ostringstream ss;
+			ss << "CreateFile failed for Named Pipe client: " << dw << std::endl;
+			WriteErrorToFile(ss.str().c_str());
 		}
 		else {
 			size_t len = strlen(szPipeUpdate);
@@ -57,19 +62,31 @@ public:
 		}
 	}
 
-	void WriteLog(std::string msg)
+	void WriteLog(LogLevel level, std::string msg)
 	{
-		this->WriteLog(msg.c_str());
+		this->WriteLog(level, msg.c_str());
 	}
 
 private:
 	static SharedMemoryLogger* _instance;
 	static std::mutex _mutex;
+    HANDLE _hTrace = NULL;
     HANDLE _hInfo = NULL;
+    HANDLE _hError = NULL;
+    HANDLE _hFatal = NULL;
 
 	SharedMemoryLogger()
 	{
+		_hTrace = CreateFile((LPCSTR)"\\\\.\\pipe\\CppInfoTrace", GENERIC_WRITE,
+				 0, NULL, OPEN_ALWAYS,
+				 0, NULL);
 		_hInfo = CreateFile((LPCSTR)"\\\\.\\pipe\\CppInfoLog", GENERIC_WRITE,
+				 0, NULL, OPEN_ALWAYS,
+				 0, NULL);
+		_hError = CreateFile((LPCSTR)"\\\\.\\pipe\\CppInfoError", GENERIC_WRITE,
+				 0, NULL, OPEN_ALWAYS,
+				 0, NULL);
+		_hFatal = CreateFile((LPCSTR)"\\\\.\\pipe\\CppInfoFatal", GENERIC_WRITE,
 				 0, NULL, OPEN_ALWAYS,
 				 0, NULL);
 	}
@@ -84,6 +101,18 @@ private:
 			fprintf(fp, "%s\t%s", now.ToString().c_str(), message);
 			fclose(fp);
 		}
+	}
+
+	HANDLE GetLogLevelFileHandle(LogLevel level)
+	{
+		if (LogLevel::LOGINFO == level)
+			return _hInfo;
+		else if (LogLevel::LOGERROR == level)
+			return _hError;
+		else if (LogLevel::LOGTRACE == level)
+			return _hTrace;
+		else if (LogLevel::LOGFATAL == level)
+			return _hFatal;
 	}
 };
 

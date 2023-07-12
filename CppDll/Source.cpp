@@ -7,15 +7,20 @@
 
 int AddTwoNum(int a, int b)
 {
-    SharedMemoryLogger::GetInstance().WriteLog ("Enter cpp function AddTwoNum");
+    SharedMemoryLogger::GetInstance().WriteLog (LogLevel::LOGINFO, "Enter cpp function AddTwoNum");
 
 	int sum = 0;
 	sum = a + b;
 
 	std::ostringstream ss;
 	ss << a << " + " << b << " = " << sum << std::endl;
-	SharedMemoryLogger::GetInstance().WriteLog(ss.str());
+	SharedMemoryLogger::GetInstance().WriteLog(LogLevel::LOGINFO, ss.str());
 
-    SharedMemoryLogger::GetInstance().WriteLog ("Finished function work.");
+    SharedMemoryLogger::GetInstance().WriteLog (LogLevel::LOGINFO, "Finished function work.");
 	return sum;
+}
+
+void WriteErrorLog()
+{
+    SharedMemoryLogger::GetInstance().WriteLog (LogLevel::LOGERROR, "Test write LOGERRO success!");
 }

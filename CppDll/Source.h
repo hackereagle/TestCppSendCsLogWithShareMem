@@ -13,3 +13,4 @@
 #include <windows.h>
 
 DLL_API int AddTwoNum(int a, int b);
+DLL_API void WriteErrorLog();
