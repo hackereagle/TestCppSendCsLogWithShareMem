@@ -49,18 +49,16 @@ public:
 
 	void WriteLog(std::string msg)
 	{
-		msg = msg.append("\n");
 		char buffer[500]{0};
 		int len = msg.size() > 500 ? 500 : msg.size();
 		memcpy(buffer, msg.c_str(), sizeof(char) * len);
-		this->WriteLog(_buffer);
+		this->WriteLog(buffer);
 	}
 
 private:
 	static SharedMemoryLogger* _instance;
 	static std::mutex _mutex;
     HANDLE _hFile = NULL;
-	char _buffer[500]{0};
 
 	SharedMemoryLogger()
 	{
