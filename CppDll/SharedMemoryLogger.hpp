@@ -59,7 +59,8 @@ private:
 
 	SharedMemoryLogger()
 	{
-		_hFile = CreateFile((LPCSTR)"\\\\.\\pipe\\BvrPipe", GENERIC_WRITE,
+		//_hFile = CreateFile((LPCSTR)"\\\\.\\pipe\\BvrPipe", GENERIC_WRITE,
+		_hFile = CreateFile((LPCSTR)"\\\\.\\pipe\\CppInfoLog", GENERIC_WRITE,
 				 0, NULL, OPEN_ALWAYS,
 				 0, NULL);
 	}

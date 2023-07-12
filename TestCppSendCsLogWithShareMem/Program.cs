@@ -5,6 +5,21 @@ using System.Runtime.InteropServices;
 
 internal class Program
 {
+    private class Logger
+    {
+        public void Info(string msg)
+        { 
+            Console.WriteLine($"{DateTime.Now} [ INFO] {msg}");
+        }
+
+        public void Error(string msg)
+        { 
+            Console.WriteLine($"{DateTime.Now} [ERROR] {msg}");
+        }
+    }
+
+    static Logger _logger = new Logger();
+
     [DllImport("CppDll.dll", EntryPoint = "AddTwoNum", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
     static extern int AddTwoNum(int a, int b);
 
@@ -18,13 +33,15 @@ internal class Program
             { 
                 for (; ; )
                 {
-                    using (NamedPipeServerStream pipeStream = new NamedPipeServerStream("BvrPipe"))
-                    //using (NamedPipeServerStream pipeStream = new NamedPipeServerStream("\\\\.\\pipe\\BvrPipe"))
+                    //using (NamedPipeServerStream pipeStream = new NamedPipeServerStream("BvrPipe"))
+                    using (NamedPipeServerStream pipeStream = new NamedPipeServerStream("CppInfoLog"))
                     {
-                        Console.WriteLine("[Server] Pipe created {0}", pipeStream.GetHashCode());
+                        //Console.WriteLine("[Server] Pipe created {0}", pipeStream.GetHashCode());
+                        _logger.Info($"[Server] Pipe created {pipeStream.GetHashCode()}");
                         // Wait for n1 connection
                         pipeStream.WaitForConnection();
-                        Console.WriteLine("[Server] Pipe connection established");
+                        //Console.WriteLine("[Server] Pipe connection established");
+                        _logger.Info("[Server] Pipe connection established");
 
                         using (StreamReader sr = new StreamReader(pipeStream))
                         {
@@ -32,11 +49,13 @@ internal class Program
                             // We read n1 line from the pipe and print it together with the current time
                             while ((temp = sr.ReadLine()) != null)
                             {
-                                Console.WriteLine("{0}: {1}", DateTime.Now, temp);
+                                //Console.WriteLine("{0}: {1}", DateTime.Now, temp);
+                                _logger.Info($"{temp}");
                             }
                         }
 
-                        Console.WriteLine("[Server] Pipe Disconnected");
+                        //Console.WriteLine("[Server] Pipe Disconnected");
+                        _logger.Info("[Server] Pipe Disconnected");
                     }
                 }
             }
