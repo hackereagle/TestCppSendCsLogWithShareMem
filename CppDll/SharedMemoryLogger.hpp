@@ -6,12 +6,20 @@
 #include <windows.h>
 #include "DateTime.hpp"
 
+enum class LogLevel : int
+{
+	LOGTRACE,
+	LOGINFO,
+	LOGERROR,
+	LOGFATAL,
+};
+
 class SharedMemoryLogger
 {
 public:
 	~SharedMemoryLogger()
 	{
-		CloseHandle(_hFile);
+		CloseHandle(_hInfo);
 	}
 
 	static SharedMemoryLogger& GetInstance()
@@ -27,6 +35,8 @@ public:
 	void WriteLog(const char* szPipeUpdate)
 	{
 		DWORD dwWrite;
+
+		HANDLE _hFile = _hInfo;
 
 		if (_hFile == INVALID_HANDLE_VALUE) {
 			DWORD dw = GetLastError();
@@ -55,12 +65,11 @@ public:
 private:
 	static SharedMemoryLogger* _instance;
 	static std::mutex _mutex;
-    HANDLE _hFile = NULL;
+    HANDLE _hInfo = NULL;
 
 	SharedMemoryLogger()
 	{
-		//_hFile = CreateFile((LPCSTR)"\\\\.\\pipe\\BvrPipe", GENERIC_WRITE,
-		_hFile = CreateFile((LPCSTR)"\\\\.\\pipe\\CppInfoLog", GENERIC_WRITE,
+		_hInfo = CreateFile((LPCSTR)"\\\\.\\pipe\\CppInfoLog", GENERIC_WRITE,
 				 0, NULL, OPEN_ALWAYS,
 				 0, NULL);
 	}
