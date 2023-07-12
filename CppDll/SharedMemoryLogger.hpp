@@ -49,10 +49,11 @@ public:
 
 	void WriteLog(std::string msg)
 	{
-		char buffer[500]{0};
-		int len = msg.size() > 500 ? 500 : msg.size();
-		memcpy(buffer, msg.c_str(), sizeof(char) * len);
-		this->WriteLog(buffer);
+		//char buffer[500]{0};
+		//int len = msg.size() > 500 ? 500 : msg.size();
+		//memcpy(buffer, msg.c_str(), sizeof(char) * len);
+		//this->WriteLog(buffer);
+		this->WriteLog(msg.c_str());
 	}
 
 private:
