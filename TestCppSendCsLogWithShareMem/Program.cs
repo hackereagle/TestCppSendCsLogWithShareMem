@@ -22,14 +22,14 @@ internal class Program
                     //using (NamedPipeServerStream pipeStream = new NamedPipeServerStream("\\\\.\\pipe\\BvrPipe"))
                     {
                         Console.WriteLine("[Server] Pipe created {0}", pipeStream.GetHashCode());
-                        // Wait for a connection
+                        // Wait for n1 connection
                         pipeStream.WaitForConnection();
                         Console.WriteLine("[Server] Pipe connection established");
 
                         using (StreamReader sr = new StreamReader(pipeStream))
                         {
                             string? temp;
-                            // We read a line from the pipe and print it together with the current time
+                            // We read n1 line from the pipe and print it together with the current time
                             while ((temp = sr.ReadLine()) != null)
                             {
                                 Console.WriteLine("{0}: {1}", DateTime.Now, temp);
@@ -48,12 +48,23 @@ internal class Program
 
 
         string? cmd = string.Empty;
+        string[]? nums = null;
+        int n1 = 0, n2 = 0, result = 0;
         while (cmd != "q")
         {
             cmd = Console.ReadLine();
-            Console.WriteLine("Conduct cpp function");
-            AddTwoNum(1, 2);
-            Console.WriteLine("Finish cpp function");
+            nums = cmd!.Split(' ');
+            if (nums.Length == 2 &&
+                int.TryParse(nums[0], out n1) && int.TryParse(nums[1], out n2))
+            { 
+                Console.WriteLine("Conduct cpp function!");
+                result = AddTwoNum(n1, n2);
+                Console.WriteLine($"Finish cpp function! result = {result}");
+            }
+            else 
+            {
+                Console.WriteLine("Please check your input!");
+            };
         }
 
     }
