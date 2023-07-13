@@ -22,5 +22,5 @@ int AddTwoNum(int a, int b)
 
 void WriteErrorLog()
 {
-    SharedMemoryLogger::GetInstance().WriteLog (LogLevel::LOGERROR, "Test write LOGERRO success!");
+    SharedMemoryLogger::GetInstance().WriteLog (LogLevel::LOGERROR, "Test write LOGERROR success!");
 }

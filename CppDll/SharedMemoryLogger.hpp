@@ -4,7 +4,11 @@
 #include <memory>
 #include <mutex>
 #include <windows.h>
+#include <filesystem>
+#include <fstream>
 #include "DateTime.hpp"
+
+//namespace fs = std::experimental::filesystem;
 
 enum class LogLevel : int
 {
@@ -23,6 +27,7 @@ public:
 		CloseHandle(_hInfo);
 		CloseHandle(_hError);
 		CloseHandle(_hFatal);
+		_fileStream.close();
 	}
 
 	static SharedMemoryLogger& GetInstance()
@@ -74,9 +79,11 @@ private:
     HANDLE _hInfo = NULL;
     HANDLE _hError = NULL;
     HANDLE _hFatal = NULL;
+	std::fstream _fileStream;
 
 	SharedMemoryLogger()
 	{
+		_fileStream.open("./debug.txt", std::ios::out | std::ios::trunc);
 		_hTrace = CreateFile((LPCSTR)"\\\\.\\pipe\\CppInfoTrace", GENERIC_WRITE,
 				 0, NULL, OPEN_ALWAYS,
 				 0, NULL);
@@ -94,13 +101,7 @@ private:
 	void WriteErrorToFile(const char* message)
 	{
 		DateTime now = DateTime::Now();
-		FILE* fp = 0;
-		fopen_s(&fp, "./debug.txt", "a+");
-		if (fp != 0)
-		{
-			fprintf(fp, "%s\t%s", now.ToString().c_str(), message);
-			fclose(fp);
-		}
+		_fileStream << now.ToString() << "\t" << message << std::endl;
 	}
 
 	HANDLE GetLogLevelFileHandle(LogLevel level)
