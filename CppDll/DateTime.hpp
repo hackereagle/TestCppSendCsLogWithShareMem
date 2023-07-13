@@ -55,6 +55,10 @@ public:
 		std::string time;
         try{
             std::ostringstream ss;
+            ss << std::setfill('0') << std::setw(4) << this->GetYear()
+                << "/" << std::setfill('0') << std::setw(2) << this->GetMonth()
+                << "/" << std::setfill('0') << std::setw(2) << this->GetDay()
+                << " ";
             ss << std::setfill('0') << std::setw(2) << this->GetHour()
                << ":" << std::setfill('0') << std::setw(2) << this->GetMinute()
                << ":" << std::setfill('0') << std::setw(2) << this->GetSecond()
