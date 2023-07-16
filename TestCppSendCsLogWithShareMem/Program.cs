@@ -18,6 +18,81 @@ internal class Program
         }
     }
 
+    class PipeCategory
+    { 
+        public const string CppInfoLog = "CppInfoLog";
+        public const string CppErrorLog ="CppInfoError";
+    }
+
+    private class PipeStreamReader
+    {
+        string _pipeName = "";
+        TaskCompletionSource<bool> _isFinished;
+        bool _isOpened = false;
+        public PipeStreamReader(string pipeName)
+        {
+            _pipeName = pipeName;
+            _isFinished = new TaskCompletionSource<bool>(false);
+        }
+
+        public async Task Open()
+        {
+            if (_isOpened)
+                return;
+
+            _ = Task.Run(() => BeginReadPipeStream(_pipeName));
+
+            if (!_isFinished.Task.IsCompleted)
+                await _isFinished.Task;
+
+            _isOpened = true;
+        }
+
+        private void BeginReadPipeStream(string name)
+        {
+            if (System.IO.File.Exists($"\\\\.\\pipe\\{name}"))
+            {
+                Console.WriteLine($"pipe {name} already opened");
+                _isFinished.TrySetResult(true);
+                return;
+            }
+
+            try
+            { 
+                for (; ; )
+                {
+                    using (NamedPipeServerStream pipeStream = new NamedPipeServerStream(name))
+                    {
+                        _logger.Info($"[Server] {name} Pipe created {pipeStream.GetHashCode()}");
+                        _isFinished.SetResult(true);
+                        // Wait for n1 connection
+                        pipeStream.WaitForConnection();
+                        _logger.Info($"[Server] {name} Pipe connection established");
+
+                        using (StreamReader sr = new StreamReader(pipeStream))
+                        {
+                            string? temp;
+                            // We read n1 line from the pipe and print it together with the current time
+                            while ((temp = sr.ReadLine()) != null)
+                            {
+                                if (name == PipeCategory.CppErrorLog)
+                                    _logger.Error($"{temp}");
+                                else
+                                    _logger.Info($"{temp}");
+                            }
+                        }
+
+                        _logger.Info($"[Server] {name} Pipe Disconnected");
+                    }
+                }
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine($"In read {name} Task, ERROR: {ex.Message}");
+            }
+        }
+    }
+
     static Logger _logger = new Logger();
 
     [DllImport("CppDll.dll", EntryPoint = "AddTwoNum", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
@@ -29,7 +104,7 @@ internal class Program
     {
         Console.WriteLine("Hello, World!");
 
-        CreateTaskReadCppSharedMemoryStream();
+        _ = CreateTaskReadCppSharedMemoryStream();
 
         string? cmd = string.Empty;
         string[]? nums = null;
@@ -62,75 +137,78 @@ internal class Program
 
     }
 
-    const string _cppInfoLog = "CppInfoLog";
-    const string _cppErrorLog ="CppInfoError";
-    static void CreateTaskReadCppSharedMemoryStream()
-    { 
-        Task.Run(() =>
-        {
-            try
-            { 
-                for (; ; )
-                {
-                    using (NamedPipeServerStream pipeStream = new NamedPipeServerStream(_cppInfoLog))
-                    {
-                        _logger.Info($"[Server] {_cppInfoLog} Pipe created {pipeStream.GetHashCode()}");
-                        // Wait for n1 connection
-                        pipeStream.WaitForConnection();
-                        _logger.Info($"[Server] {_cppInfoLog} Pipe connection established");
+    static async Task CreateTaskReadCppSharedMemoryStream()
+    {
+        PipeStreamReader reader = new PipeStreamReader(PipeCategory.CppInfoLog);
+        PipeStreamReader reader2 = new PipeStreamReader(PipeCategory.CppErrorLog);
 
-                        using (StreamReader sr = new StreamReader(pipeStream))
-                        {
-                            string? temp;
-                            // We read n1 line from the pipe and print it together with the current time
-                            while ((temp = sr.ReadLine()) != null)
-                            {
-                                _logger.Info($"{temp}");
-                            }
-                        }
+        await reader.Open();
+        await reader2.Open();
+//    Task.Run(() =>
+//    {
+//        try
+//        { 
+//            for (; ; )
+//            {
+//                using (NamedPipeServerStream pipeStream = new NamedPipeServerStream(_cppInfoLog))
+//                {
+//                    _logger.Info($"[Server] {_cppInfoLog} Pipe created {pipeStream.GetHashCode()}");
+//                    // Wait for n1 connection
+//                    pipeStream.WaitForConnection();
+//                    _logger.Info($"[Server] {_cppInfoLog} Pipe connection established");
 
-                        _logger.Info($"[Server] {_cppInfoLog} Pipe Disconnected");
-                    }
-                }
-            }
-            catch (Exception ex) 
-            {
-                Console.WriteLine($"In read {_cppInfoLog} Task, ERROR: {ex.Message}");
-            }
-        });
+//                    using (StreamReader sr = new StreamReader(pipeStream))
+//                    {
+//                        string? temp;
+//                        // We read n1 line from the pipe and print it together with the current time
+//                        while ((temp = sr.ReadLine()) != null)
+//                        {
+//                            _logger.Info($"{temp}");
+//                        }
+//                    }
+
+//                    _logger.Info($"[Server] {_cppInfoLog} Pipe Disconnected");
+//                }
+//            }
+//        }
+//        catch (Exception ex) 
+//        {
+//            Console.WriteLine($"In read {_cppInfoLog} Task, ERROR: {ex.Message}");
+//        }
+//    });
 
 
-        Task.Run(() =>
-        {
-            try
-            { 
-                for (; ; )
-                {
-                    using (NamedPipeServerStream pipeStream = new NamedPipeServerStream(_cppErrorLog))
-                    {
-                        _logger.Error($"[Server] {_cppErrorLog} Pipe created {pipeStream.GetHashCode()}");
-                        // Wait for n1 connection
-                        pipeStream.WaitForConnection();
-                        _logger.Error($"[Server] {_cppErrorLog} Pipe connection established");
+//    Task.Run(() =>
+//    {
+//        try
+//        { 
+//            for (; ; )
+//            {
+//                using (NamedPipeServerStream pipeStream = new NamedPipeServerStream(_cppErrorLog))
+//                {
+//                    _logger.Error($"[Server] {_cppErrorLog} Pipe created {pipeStream.GetHashCode()}");
+//                    // Wait for n1 connection
+//                    pipeStream.WaitForConnection();
+//                    _logger.Error($"[Server] {_cppErrorLog} Pipe connection established");
 
-                        using (StreamReader sr = new StreamReader(pipeStream))
-                        {
-                            string? temp;
-                            // We read n1 line from the pipe and print it together with the current time
-                            while ((temp = sr.ReadLine()) != null)
-                            {
-                                _logger.Error($"{temp}");
-                            }
-                        }
+//                    using (StreamReader sr = new StreamReader(pipeStream))
+//                    {
+//                        string? temp;
+//                        // We read n1 line from the pipe and print it together with the current time
+//                        while ((temp = sr.ReadLine()) != null)
+//                        {
+//                            _logger.Error($"{temp}");
+//                        }
+//                    }
 
-                        _logger.Error($"[Server] {_cppErrorLog} Pipe Disconnected");
-                    }
-                }
-            }
-            catch (Exception ex) 
-            {
-                Console.WriteLine($"In read CppInfoError Task, ERROR: {ex.Message}");
-            }
-        });
+//                    _logger.Error($"[Server] {_cppErrorLog} Pipe Disconnected");
+//                }
+//            }
+//        }
+//        catch (Exception ex) 
+//        {
+//            Console.WriteLine($"In read CppInfoError Task, ERROR: {ex.Message}");
+//        }
+//    });
     }
 }
